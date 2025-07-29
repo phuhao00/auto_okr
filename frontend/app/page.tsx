@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { GitBranch, Calendar, FileText, Download, Loader2, Edit3, Save, X } from 'lucide-react'
+import { GitBranch, Calendar, FileText, Download, Loader2, Edit3, Save, X, Sparkles } from 'lucide-react'
 import axios from 'axios'
 
 interface ReportData {
@@ -19,6 +19,7 @@ export default function Home() {
   const [error, setError] = useState('')
   const [isEditing, setIsEditing] = useState(false)
   const [editedContent, setEditedContent] = useState('')
+  const [isOptimizing, setIsOptimizing] = useState(false)
 
   const generateReport = async () => {
     if (!repoPath.trim()) {
@@ -75,6 +76,33 @@ export default function Home() {
   const cancelEdit = () => {
     setIsEditing(false)
     setEditedContent('')
+  }
+
+  const optimizeWithAI = async () => {
+    if (!report) return
+
+    setIsOptimizing(true)
+    setError('')
+
+    try {
+      // 使用免费的大模型API进行优化
+      const response = await axios.post('/api/optimize-report', {
+        content: isEditing ? editedContent : report.content,
+        type: report.type
+      })
+
+      const optimizedContent = response.data.optimizedContent
+      
+      if (isEditing) {
+        setEditedContent(optimizedContent)
+      } else {
+        setReport({ ...report, content: optimizedContent })
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'AI优化时发生错误')
+    } finally {
+      setIsOptimizing(false)
+    }
   }
 
   return (
@@ -176,6 +204,23 @@ export default function Home() {
                 {isEditing ? (
                   <>
                     <button
+                      onClick={optimizeWithAI}
+                      disabled={isOptimizing}
+                      className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
+                    >
+                      {isOptimizing ? (
+                        <>
+                          <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                          优化中...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          AI优化
+                        </>
+                      )}
+                    </button>
+                    <button
                       onClick={saveEdit}
                       className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
                     >
@@ -192,6 +237,23 @@ export default function Home() {
                   </>
                 ) : (
                   <>
+                    <button
+                      onClick={optimizeWithAI}
+                      disabled={isOptimizing}
+                      className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
+                    >
+                      {isOptimizing ? (
+                        <>
+                          <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                          优化中...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          AI优化
+                        </>
+                      )}
+                    </button>
                     <button
                       onClick={startEditing}
                       className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
