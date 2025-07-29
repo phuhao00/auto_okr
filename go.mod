@@ -3,5 +3,6 @@ module git-report-generator
 go 1.21
 
 require (
-	// 无外部依赖，使用标准库
+	github.com/gorilla/mux v1.8.0
+	github.com/rs/cors v1.10.1
 )

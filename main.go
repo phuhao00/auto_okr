@@ -16,8 +16,15 @@ func main() {
 		author = flag.String("author", "", "指定作者，默认为当前Git用户")
 		output = flag.String("output", "", "输出文件路径，默认输出到控制台")
 		template = flag.String("template", "", "自定义模板文件路径")
+		server = flag.Bool("server", false, "启动HTTP服务器模式")
 	)
 	flag.Parse()
+
+	// 如果是服务器模式，启动HTTP服务器
+	if *server {
+		startServer()
+		return
+	}
 
 	// 解析日期
 	targetDate, err := parseDate(*date)
