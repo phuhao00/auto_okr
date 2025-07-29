@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { GitBranch, Calendar, FileText, Download, Loader2 } from 'lucide-react'
+import { GitBranch, Calendar, FileText, Download, Loader2, Edit3, Save, X } from 'lucide-react'
 import axios from 'axios'
 
 interface ReportData {
@@ -17,6 +17,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [report, setReport] = useState<ReportData | null>(null)
   const [error, setError] = useState('')
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedContent, setEditedContent] = useState('')
 
   const generateReport = async () => {
     if (!repoPath.trim()) {
@@ -46,7 +48,8 @@ export default function Home() {
   const downloadReport = () => {
     if (!report) return
 
-    const blob = new Blob([report.content], { type: 'text/markdown' })
+    const content = isEditing ? editedContent : report.content
+    const blob = new Blob([content], { type: 'text/markdown' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -55,6 +58,23 @@ export default function Home() {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
+  }
+
+  const startEditing = () => {
+    if (!report) return
+    setEditedContent(report.content)
+    setIsEditing(true)
+  }
+
+  const saveEdit = () => {
+    if (!report) return
+    setReport({ ...report, content: editedContent })
+    setIsEditing(false)
+  }
+
+  const cancelEdit = () => {
+    setIsEditing(false)
+    setEditedContent('')
   }
 
   return (
@@ -150,17 +170,57 @@ export default function Home() {
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold text-gray-900">
                 {report.type === 'daily' ? '日报' : '周报'} - {report.date}
+                {isEditing && <span className="ml-2 text-sm text-blue-600">(编辑模式)</span>}
               </h3>
-              <button
-                onClick={downloadReport}
-                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                下载
-              </button>
+              <div className="flex space-x-2">
+                {isEditing ? (
+                  <>
+                    <button
+                      onClick={saveEdit}
+                      className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      保存
+                    </button>
+                    <button
+                      onClick={cancelEdit}
+                      className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      取消
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={startEditing}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
+                    >
+                      <Edit3 className="w-4 h-4 mr-2" />
+                      编辑
+                    </button>
+                    <button
+                      onClick={downloadReport}
+                      className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      下载
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
             <div className="bg-gray-50 rounded-md p-4 overflow-auto">
-              <pre className="whitespace-pre-wrap text-sm text-gray-800">{report.content}</pre>
+              {isEditing ? (
+                <textarea
+                  value={editedContent}
+                  onChange={(e) => setEditedContent(e.target.value)}
+                  className="w-full h-96 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm resize-none"
+                  placeholder="编辑报告内容..."
+                />
+              ) : (
+                <pre className="whitespace-pre-wrap text-sm text-gray-800">{report.content}</pre>
+              )}
             </div>
           </div>
         )}
