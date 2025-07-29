@@ -1,0 +1,111 @@
+# {{.Author}} 的工作{{if eq .Type "daily"}}日报{{else}}周报{{end}}
+
+**📅 时间范围：** {{.Period}}
+**📦 项目仓库：** {{.RepoInfo.name}}{{if .RepoInfo.branch}} ({{.RepoInfo.branch}} 分支){{end}}
+**⏰ 生成时间：** {{formatTime .GeneratedAt}}
+{{if .RepoInfo.url}}
+**🔗 仓库地址：** {{.RepoInfo.url}}
+{{end}}
+
+---
+
+## 📊 数据概览
+
+| 指标 | 数值 |
+|------|------|
+| 提交次数 | {{.Summary.TotalCommits}} 次 |
+| 修改文件 | {{.Summary.TotalFiles}} 个 |
+| 新增代码 | {{.Summary.TotalAdditions}} 行 |
+| 删除代码 | {{.Summary.TotalDeletions}} 行 |
+| 净增长 | {{sub .Summary.TotalAdditions .Summary.TotalDeletions}} 行 |
+
+{{if eq .Type "weekly"}}
+{{if .Summary.DailyStats}}
+### 📈 每日提交趋势
+
+{{range $date, $count := .Summary.DailyStats}}
+- **{{$date}}**: {{$count}} 次提交
+{{end}}
+{{end}}
+{{end}}
+
+{{if .Summary.TopFiles}}
+### 🔥 热点文件 (修改频次)
+
+{{range .Summary.TopFiles}}
+- {{.}}
+{{end}}
+{{end}}
+
+{{if .Summary.FileTypes}}
+### 📁 技术栈分布
+
+{{range sortedFileTypes .Summary.FileTypes}}
+- {{.}}
+{{end}}
+{{end}}
+
+---
+
+## 🚀 工作内容详情
+
+{{if .Commits}}
+{{range sortedKeys .Categories}}
+{{$category := .}}
+{{$commits := index $.Categories $category}}
+### {{$category}} <span style="color: #666; font-size: 0.8em;">({{len $commits}} 项)</span>
+
+{{range $commits}}
+<details>
+<summary><strong>{{formatShortHash .Hash}}</strong> - {{.Message}}</summary>
+
+**📅 提交时间：** {{formatTime .Date}}
+{{if .Files}}
+**📝 涉及文件：**
+{{range .Files}}
+- `{{.}}`
+{{end}}
+{{end}}
+{{if or .Additions .Deletions}}
+**📊 代码变更：** <span style="color: green;">+{{.Additions}}</span> / <span style="color: red;">-{{.Deletions}}</span>
+{{end}}
+
+</details>
+
+{{end}}
+{{end}}
+{{else}}
+> 📝 {{if eq .Type "daily"}}今日{{else}}本周{{end}}暂无提交记录。
+{{end}}
+
+---
+
+{{if eq .Type "weekly"}}
+## 💡 本周工作总结
+
+本周共完成 **{{.Summary.TotalCommits}}** 次代码提交，工作重点如下：
+
+{{range sortedKeys .Categories}}
+{{$category := .}}
+{{$commits := index $.Categories $category}}
+- **{{$category}}**：完成 {{len $commits}} 项任务
+{{end}}
+
+### 📈 代码贡献
+- 新增代码：**{{.Summary.TotalAdditions}}** 行
+- 删除代码：**{{.Summary.TotalDeletions}}** 行
+- 净贡献：**{{sub .Summary.TotalAdditions .Summary.TotalDeletions}}** 行
+
+### 🎯 下周计划
+<!-- 请手动填写下周工作计划 -->
+- [ ] 待规划任务1
+- [ ] 待规划任务2
+- [ ] 待规划任务3
+
+{{end}}
+
+---
+
+<div align="center">
+<small><em>📋 本报告由 Git 提交记录自动生成 | 生成时间：{{formatTime .GeneratedAt}}</em></small>
+</div>

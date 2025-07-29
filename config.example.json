@@ -1,0 +1,34 @@
+{
+  "default_author": "huhao",
+  "default_repo_path": "ssh://git@gitlab.zs.shaipower.online:2222/sre/cmdb/cmdbcore.git",
+  "default_template": "",
+  "output_directory": "./reports",
+  "date_format": "2006年01月02日",
+  "time_format": "2006-01-02 15:04:05",
+  "categories": {
+    "功能开发": ["feat", "feature", "add", "新增", "功能"],
+    "Bug修复": ["fix", "bug", "修复", "修正"],
+    "代码重构": ["refactor", "重构"],
+    "文档更新": ["doc", "readme", "文档"],
+    "测试相关": ["test", "测试"],
+    "配置修改": ["config", "配置"]
+  },
+  "file_type_mapping": {
+    "js,jsx,ts,tsx": "JavaScript/TypeScript",
+    "go": "Go",
+    "py": "Python",
+    "java": "Java",
+    "cpp,cc,cxx,c": "C/C++",
+    "html,htm": "HTML",
+    "css,scss,sass": "CSS",
+    "md,markdown": "Markdown",
+    "json,yaml,yml,xml": "配置文件"
+  },
+  "report_settings": {
+    "max_top_files": 5,
+    "include_file_changes": true,
+    "include_code_stats": true,
+    "include_daily_distribution": true,
+    "short_hash_length": 8
+  }
+}
