@@ -1,0 +1,44 @@
+# Git相关
+.git
+.gitignore
+
+# 构建产物
+git-report.exe
+git-report
+*.exe
+
+# 开发文件
+*.md
+CHANGELOG.md
+Makefile
+demo.bat
+config.example.json
+
+# IDE文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Docker相关
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# 前端相关（后端构建时不需要）
+frontend/

@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # 后端Go服务
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: git-report-backend
+    ports:
+      - "8080:8080"
+    volumes:
+      # 挂载Git仓库目录（用户需要根据实际情况修改）
+      - ./:/workspace
+    working_dir: /workspace
+    environment:
+      - GIN_MODE=release
+    restart: unless-stopped
+    networks:
+      - git-report-network
+
+  # 前端Next.js服务
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: git-report-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - git-report-network
+
+networks:
+  git-report-network:
+    driver: bridge
+
+volumes:
+  # 可选：持久化数据卷
+  git-data:
+    driver: local

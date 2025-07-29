@@ -16,7 +16,44 @@
 
 ## 安装
 
-### 后端服务
+### 🐳 Docker 一键部署（推荐）
+
+**前提条件：**
+- 安装 [Docker](https://www.docker.com/products/docker-desktop)
+- 安装 Docker Compose
+
+**Windows 用户：**
+```bash
+# 双击运行或在命令行执行
+docker-deploy.bat
+```
+
+**Linux/macOS 用户：**
+```bash
+# 给脚本执行权限
+chmod +x docker-deploy.sh
+# 运行部署脚本
+./docker-deploy.sh
+```
+
+**手动 Docker 部署：**
+```bash
+# 构建并启动服务
+docker-compose up -d --build
+
+# 查看服务状态
+docker-compose ps
+
+# 查看日志
+docker-compose logs -f
+
+# 停止服务
+docker-compose down
+```
+
+### 📦 传统安装方式
+
+#### 后端服务
 
 ```bash
 # 克隆项目
@@ -30,7 +67,7 @@ go mod tidy
 go build -o git-report.exe
 ```
 
-### 前端界面（可选）
+#### 前端界面（可选）
 
 ```bash
 # 进入前端目录
@@ -283,6 +320,12 @@ GET /api/health
 - **Tailwind CSS**：样式框架
 - **Lucide React**：图标库
 
+### 容器化
+- **Docker**：容器化平台
+- **Docker Compose**：多容器应用编排
+- **Alpine Linux**：轻量级基础镜像
+- **Multi-stage Build**：优化镜像大小
+
 ## 注意事项
 
 1. 确保在 Git 仓库目录中运行，或使用 `-repo` 参数指定仓库路径
@@ -291,6 +334,8 @@ GET /api/health
 4. 周报默认按周一到周日计算
 5. Web 界面需要同时启动后端服务器和前端开发服务器
 6. 默认端口：后端 8080，前端 3000
+7. Docker 部署时需要将 Git 仓库目录挂载到容器中
+8. 使用 Docker 时确保有足够的磁盘空间用于构建镜像
 
 ## 示例输出
 
@@ -338,20 +383,67 @@ GET /api/health
 
 ### 项目结构
 ```
-├── main.go              # 主程序入口
-├── server.go            # HTTP 服务器
-├── git.go              # Git 操作
-├── report.go           # 报告生成
-├── renderer.go         # 模板渲染
-├── go.mod              # Go 模块
-├── frontend/           # Next.js 前端
-│   ├── app/           # App Router 页面
-│   ├── package.json   # 前端依赖
-│   └── ...            # 其他前端文件
-└── templates/         # 报告模板
+git-report-generator/
+├── main.go                    # 主程序入口
+├── server.go                  # HTTP服务器
+├── git.go                    # Git操作相关
+├── report.go                 # 报告生成逻辑
+├── renderer.go               # 模板渲染
+├── go.mod                    # Go模块依赖
+├── Dockerfile                # 后端Docker配置
+├── docker-compose.yml        # 容器编排配置
+├── docker-deploy.sh          # Linux/macOS部署脚本
+├── docker-deploy.bat         # Windows部署脚本
+├── .dockerignore             # Docker忽略文件
+├── templates/                # 报告模板
+│   └── custom-template.tmpl
+└── frontend/                 # Next.js前端
+    ├── app/
+    │   ├── globals.css
+    │   ├── layout.tsx
+    │   └── page.tsx
+    ├── Dockerfile            # 前端Docker配置
+    ├── .dockerignore         # 前端Docker忽略文件
+    ├── package.json
+    ├── next.config.js
+    ├── tailwind.config.js
+    └── tsconfig.json
+```
+
+### 开发环境
+
+**本地开发：**
+```bash
+# 后端开发
+go run . -server
+
+# 前端开发
+cd frontend
+npm run dev
+```
+
+**Docker 开发：**
+```bash
+# 构建开发镜像
+docker-compose -f docker-compose.dev.yml up --build
+
+# 查看日志
+docker-compose logs -f
 ```
 
 ### 构建生产版本
+
+**Docker 部署（推荐）：**
+```bash
+# 一键部署
+./docker-deploy.sh  # Linux/macOS
+docker-deploy.bat   # Windows
+
+# 或手动部署
+docker-compose up -d --build
+```
+
+**传统构建：**
 
 ```bash
 # 构建后端
@@ -360,6 +452,23 @@ go build -ldflags "-s -w" -o git-report
 # 构建前端
 cd frontend
 npm run build
+```
+
+### Docker 镜像管理
+
+```bash
+# 查看镜像
+docker images | grep git-report
+
+# 清理未使用的镜像
+docker image prune
+
+# 重新构建镜像
+docker-compose build --no-cache
+
+# 推送到镜像仓库（可选）
+docker tag git-report-backend:latest your-registry/git-report-backend:latest
+docker push your-registry/git-report-backend:latest
 ```
 
 ## 许可证
