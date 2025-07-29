@@ -1,30 +1,95 @@
 # Git 提交记录报告生成器
 
-一个基于 Git 提交记录自动生成日报和周报的 Golang 工具。
+一个基于 Git 提交记录自动生成日报和周报的 Golang 工具，支持命令行和 Web 界面两种使用方式。
 
 ## 功能特性
 
 - 📅 **自动生成日报和周报**：基于 Git 提交记录自动生成工作报告
+- 🌐 **Web 界面**：现代化的 Next.js 前端界面，支持在线生成和预览报告
+- 🖥️ **命令行工具**：传统的 CLI 工具，适合脚本化和自动化场景
+- 🔌 **HTTP API**：RESTful API 接口，支持第三方集成
 - 👤 **多用户支持**：可指定特定作者或使用当前 Git 用户
 - 📊 **详细统计信息**：包含提交次数、代码行数、文件类型分布等
 - 🏷️ **智能分类**：自动将提交按功能开发、Bug修复、重构等类别分组
 - 🎨 **自定义模板**：支持使用自定义模板定制报告格式
-- 💾 **灵活输出**：支持控制台输出或保存到文件
+- 💾 **灵活输出**：支持控制台输出、文件保存或在线预览
 
 ## 安装
+
+### 后端服务
 
 ```bash
 # 克隆项目
 git clone <repository-url>
 cd git-report-generator
 
+# 安装 Go 依赖
+go mod tidy
+
 # 编译
 go build -o git-report.exe
 ```
 
+### 前端界面（可选）
+
+```bash
+# 进入前端目录
+cd frontend
+
+# 安装依赖
+npm install
+
+# 启动开发服务器
+npm run dev
+```
+
 ## 使用方法
 
-### 基本用法
+### Web 界面使用
+
+1. **启动后端服务**
+```bash
+# 启动 HTTP 服务器（默认端口 8080）
+./git-report.exe -server
+```
+
+2. **启动前端界面**
+```bash
+# 在另一个终端中启动前端（默认端口 3000）
+cd frontend
+npm run dev
+```
+
+3. **访问 Web 界面**
+   - 打开浏览器访问 `http://localhost:3000`
+   - 输入 Git 仓库路径
+   - 选择报告类型和日期
+   - 在线生成和预览报告
+   - 支持下载 Markdown 格式报告
+
+### API 接口
+
+#### 生成报告
+```bash
+POST /api/generate-report
+Content-Type: application/json
+
+{
+  "repo_path": "/path/to/repo",
+  "report_type": "daily",
+  "date": "2024-01-15",
+  "author": "张三"
+}
+```
+
+#### 健康检查
+```bash
+GET /api/health
+```
+
+### 命令行使用
+
+#### 基本用法
 
 ```bash
 # 生成今日日报
@@ -53,6 +118,7 @@ go build -o git-report.exe
 
 | 参数 | 说明 | 默认值 | 示例 |
 |------|------|--------|---------|
+| `-server` | 启动 HTTP 服务器模式 | false | `-server` |
 | `-type` | 报告类型：daily, weekly | daily | `-type weekly` |
 | `-date` | 指定日期 (YYYY-MM-DD) | 今天 | `-date 2024-01-15` |
 | `-repo` | Git仓库路径 | 当前目录 | `-repo /path/to/repo` |
@@ -134,12 +200,28 @@ go build -o git-report.exe
 {{end}}
 ```
 
+## 技术栈
+
+### 后端
+- **Go 1.21+**：主要编程语言
+- **Gorilla Mux**：HTTP 路由
+- **CORS**：跨域支持
+- **Git**：版本控制系统集成
+
+### 前端
+- **Next.js 14**：React 框架
+- **TypeScript**：类型安全
+- **Tailwind CSS**：样式框架
+- **Lucide React**：图标库
+
 ## 注意事项
 
 1. 确保在 Git 仓库目录中运行，或使用 `-repo` 参数指定仓库路径
 2. 确保已配置 Git 用户信息（`git config user.name`）
 3. 工具依赖 `git` 命令，请确保 Git 已正确安装并在 PATH 中
 4. 周报默认按周一到周日计算
+5. Web 界面需要同时启动后端服务器和前端开发服务器
+6. 默认端口：后端 8080，前端 3000
 
 ## 示例输出
 
@@ -181,6 +263,34 @@ go build -o git-report.exe
 > 📈 代码变更: +89 -5
 
 ...
+```
+
+## 开发
+
+### 项目结构
+```
+├── main.go              # 主程序入口
+├── server.go            # HTTP 服务器
+├── git.go              # Git 操作
+├── report.go           # 报告生成
+├── renderer.go         # 模板渲染
+├── go.mod              # Go 模块
+├── frontend/           # Next.js 前端
+│   ├── app/           # App Router 页面
+│   ├── package.json   # 前端依赖
+│   └── ...            # 其他前端文件
+└── templates/         # 报告模板
+```
+
+### 构建生产版本
+
+```bash
+# 构建后端
+go build -ldflags "-s -w" -o git-report
+
+# 构建前端
+cd frontend
+npm run build
 ```
 
 ## 许可证
