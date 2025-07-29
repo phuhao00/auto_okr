@@ -18,7 +18,7 @@
 
 ### Web 界面
 
-![Git Report Generator Web Interface](https://github.com/user-attachments/assets/your-screenshot-url)
+![Git Report Generator Web Interface](https://github.com/phuhao00/auto_okr/blob/main/image.png)
 
 *现代化的 Web 界面，支持在线生成和预览 Git 提交报告*
 
