@@ -11,6 +11,7 @@ interface ReportData {
 }
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState<'generate' | 'polish'>('generate')
   const [repoPath, setRepoPath] = useState('')
   const [reportType, setReportType] = useState<'daily' | 'weekly'>('daily')
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
@@ -20,6 +21,8 @@ export default function Home() {
   const [isEditing, setIsEditing] = useState(false)
   const [editedContent, setEditedContent] = useState('')
   const [isOptimizing, setIsOptimizing] = useState(false)
+  const [polishContent, setPolishContent] = useState('')
+  const [polishedResult, setPolishedResult] = useState('')
 
   const generateReport = async () => {
     if (!repoPath.trim()) {
@@ -105,17 +108,88 @@ export default function Home() {
     }
   }
 
+  const polishReport = async () => {
+    if (!polishContent.trim()) {
+      setError('请输入要润色的报告内容')
+      return
+    }
+
+    setIsOptimizing(true)
+    setError('')
+    setPolishedResult('')
+
+    try {
+      const response = await axios.post('/api/optimize-report', {
+        content: polishContent,
+        type: 'daily' // 默认类型，润色功能不依赖具体类型
+      })
+
+      setPolishedResult(response.data.optimizedContent)
+    } catch (err: any) {
+      setError(err.response?.data?.error || '润色时发生错误')
+    } finally {
+      setIsOptimizing(false)
+    }
+  }
+
+  const downloadPolishedReport = () => {
+    if (!polishedResult) return
+
+    const blob = new Blob([polishedResult], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `polished-report-${new Date().toISOString().split('T')[0]}.md`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="px-4 py-8">
       <div className="max-w-4xl mx-auto">
         {/* 标题区域 */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Git 提交报告生成器</h2>
-          <p className="text-lg text-gray-600">输入仓库路径，生成精美的日报或周报</p>
+          <p className="text-lg text-gray-600">生成精美的日报或周报，支持AI智能润色</p>
         </div>
 
-        {/* 输入表单 */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        {/* 选项卡导航 */}
+        <div className="mb-8">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('generate')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'generate'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <FileText className="inline w-4 h-4 mr-1" />
+                生成报告
+              </button>
+              <button
+                onClick={() => setActiveTab('polish')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'polish'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <Sparkles className="inline w-4 h-4 mr-1" />
+                润色汇报
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        {/* 选项卡内容 */}
+        {activeTab === 'generate' && (
+          <>
+            {/* 输入表单 */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* 仓库路径输入 */}
             <div className="md:col-span-2">
@@ -192,99 +266,168 @@ export default function Home() {
           </div>
         )}
 
-        {/* 报告结果 */}
-        {report && (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-gray-900">
-                {report.type === 'daily' ? '日报' : '周报'} - {report.date}
-                {isEditing && <span className="ml-2 text-sm text-blue-600">(编辑模式)</span>}
-              </h3>
-              <div className="flex space-x-2">
-                {isEditing ? (
+            {/* 报告结果 */}
+            {report && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    {report.type === 'daily' ? '日报' : '周报'} - {report.date}
+                    {isEditing && <span className="ml-2 text-sm text-blue-600">(编辑模式)</span>}
+                  </h3>
+                  <div className="flex space-x-2">
+                    {isEditing ? (
+                      <>
+                        <button
+                          onClick={optimizeWithAI}
+                          disabled={isOptimizing}
+                          className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
+                        >
+                          {isOptimizing ? (
+                            <>
+                              <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                              优化中...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              AI优化
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={saveEdit}
+                          className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
+                        >
+                          <Save className="w-4 h-4 mr-2" />
+                          保存
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
+                        >
+                          <X className="w-4 h-4 mr-2" />
+                          取消
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={optimizeWithAI}
+                          disabled={isOptimizing}
+                          className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
+                        >
+                          {isOptimizing ? (
+                            <>
+                              <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                              优化中...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              AI优化
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={startEditing}
+                          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
+                        >
+                          <Edit3 className="w-4 h-4 mr-2" />
+                          编辑
+                        </button>
+                        <button
+                          onClick={downloadReport}
+                          className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          下载
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="bg-gray-50 rounded-md p-4 overflow-auto">
+                  {isEditing ? (
+                    <textarea
+                      value={editedContent}
+                      onChange={(e) => setEditedContent(e.target.value)}
+                      className="w-full h-96 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm resize-none"
+                      placeholder="编辑报告内容..."
+                    />
+                  ) : (
+                    <pre className="whitespace-pre-wrap text-sm text-gray-800">{report.content}</pre>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* 润色汇报选项卡内容 */}
+        {activeTab === 'polish' && (
+          <>
+            {/* 润色输入区域 */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <div className="mb-4">
+                <label htmlFor="polishContent" className="block text-sm font-medium text-gray-700 mb-2">
+                  <Sparkles className="inline w-4 h-4 mr-1" />
+                  输入要润色的报告内容
+                </label>
+                <textarea
+                  id="polishContent"
+                  value={polishContent}
+                  onChange={(e) => setPolishContent(e.target.value)}
+                  className="w-full h-64 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm resize-none"
+                  placeholder="请粘贴或输入需要润色的报告内容..."
+                />
+              </div>
+              <button
+                onClick={polishReport}
+                disabled={isOptimizing || !polishContent.trim()}
+                className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center justify-center"
+              >
+                {isOptimizing ? (
                   <>
-                    <button
-                      onClick={optimizeWithAI}
-                      disabled={isOptimizing}
-                      className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
-                    >
-                      {isOptimizing ? (
-                        <>
-                          <Loader2 className="animate-spin w-4 h-4 mr-2" />
-                          优化中...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-4 h-4 mr-2" />
-                          AI优化
-                        </>
-                      )}
-                    </button>
-                    <button
-                      onClick={saveEdit}
-                      className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
-                    >
-                      <Save className="w-4 h-4 mr-2" />
-                      保存
-                    </button>
-                    <button
-                      onClick={cancelEdit}
-                      className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
-                    >
-                      <X className="w-4 h-4 mr-2" />
-                      取消
-                    </button>
+                    <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                    润色中...
                   </>
                 ) : (
                   <>
-                    <button
-                      onClick={optimizeWithAI}
-                      disabled={isOptimizing}
-                      className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
-                    >
-                      {isOptimizing ? (
-                        <>
-                          <Loader2 className="animate-spin w-4 h-4 mr-2" />
-                          优化中...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-4 h-4 mr-2" />
-                          AI优化
-                        </>
-                      )}
-                    </button>
-                    <button
-                      onClick={startEditing}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
-                    >
-                      <Edit3 className="w-4 h-4 mr-2" />
-                      编辑
-                    </button>
-                    <button
-                      onClick={downloadReport}
-                      className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      下载
-                    </button>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    AI润色
                   </>
                 )}
+              </button>
+            </div>
+
+            {/* 错误信息 */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+                <div className="text-red-800">{error}</div>
               </div>
-            </div>
-            <div className="bg-gray-50 rounded-md p-4 overflow-auto">
-              {isEditing ? (
-                <textarea
-                  value={editedContent}
-                  onChange={(e) => setEditedContent(e.target.value)}
-                  className="w-full h-96 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm resize-none"
-                  placeholder="编辑报告内容..."
-                />
-              ) : (
-                <pre className="whitespace-pre-wrap text-sm text-gray-800">{report.content}</pre>
-              )}
-            </div>
-          </div>
+            )}
+
+            {/* 润色结果 */}
+            {polishedResult && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    润色结果
+                  </h3>
+                  <button
+                    onClick={downloadPolishedReport}
+                    className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    下载
+                  </button>
+                </div>
+                <div className="bg-gray-50 rounded-md p-4 overflow-auto">
+                  <pre className="whitespace-pre-wrap text-sm text-gray-800">{polishedResult}</pre>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
