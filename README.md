@@ -22,6 +22,10 @@
 
 *现代化的 Web 界面，支持在线生成和预览 Git 提交报告*
 
+![Git Report Generator Additional Interface](https://github.com/phuhao00/auto_okr/blob/main/image02.png)
+
+*Git 报告生成器的润色汇报功能界面*
+
 ## 安装
 
 ### 🐳 Docker 一键部署（推荐）
