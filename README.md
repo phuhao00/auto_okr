@@ -483,6 +483,226 @@ docker tag git-report-backend:latest your-registry/git-report-backend:latest
 docker push your-registry/git-report-backend:latest
 ```
 
+## 故障排除
+
+### 常见问题
+
+#### Docker 相关
+
+**Q: Docker 构建失败，提示网络连接问题**
+```bash
+# 解决方案：使用国内镜像源
+docker-compose -f docker-compose.china.yml up -d --build
+```
+
+**Q: 容器启动后无法访问服务**
+```bash
+# 检查容器状态
+docker-compose ps
+
+# 查看容器日志
+docker-compose logs backend
+docker-compose logs frontend
+
+# 检查端口占用
+netstat -an | findstr :8080  # Windows
+lsof -i :8080               # Linux/macOS
+```
+
+#### Git 相关
+
+**Q: 提示 "not a git repository"**
+- 确保在 Git 仓库目录中运行
+- 或使用 `-repo` 参数指定正确的仓库路径
+
+**Q: 无法获取 Git 用户信息**
+```bash
+# 配置 Git 用户信息
+git config --global user.name "Your Name"
+git config --global user.email "your.email@example.com"
+```
+
+**Q: 生成的报告为空**
+- 检查指定日期范围内是否有提交记录
+- 确认作者名称是否正确
+- 使用 `git log --author="作者名" --since="2024-01-01"` 验证
+
+#### 网络相关
+
+**Q: 前端无法连接后端 API**
+- 确认后端服务已启动（默认端口 8080）
+- 检查防火墙设置
+- 确认 CORS 配置正确
+
+### 性能优化
+
+**大型仓库优化：**
+```bash
+# 限制提交历史深度
+git log --since="1 week ago" --oneline
+
+# 使用浅克隆
+git clone --depth 100 <repository-url>
+```
+
+**内存使用优化：**
+- 对于大型仓库，建议使用 Docker 部署以限制内存使用
+- 可以通过 `docker-compose.yml` 中的 `mem_limit` 参数控制内存限制
+
+## 贡献指南
+
+我们欢迎社区贡献！请遵循以下步骤：
+
+### 开发流程
+
+1. **Fork 项目**
+   ```bash
+   git clone https://github.com/your-username/git-report-generator.git
+   cd git-report-generator
+   ```
+
+2. **创建功能分支**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+3. **本地开发**
+   ```bash
+   # 启动开发环境
+   go run . -server
+   
+   # 在另一个终端启动前端
+   cd frontend
+   npm run dev
+   ```
+
+4. **运行测试**
+   ```bash
+   # 后端测试
+   go test ./...
+   
+   # 前端测试
+   cd frontend
+   npm test
+   ```
+
+5. **提交更改**
+   ```bash
+   git add .
+   git commit -m "feat: add your feature description"
+   git push origin feature/your-feature-name
+   ```
+
+6. **创建 Pull Request**
+   - 在 GitHub 上创建 PR
+   - 详细描述更改内容
+   - 确保通过所有检查
+
+### 代码规范
+
+**Go 代码：**
+- 使用 `gofmt` 格式化代码
+- 遵循 Go 官方编码规范
+- 添加必要的注释和文档
+
+**前端代码：**
+- 使用 TypeScript 严格模式
+- 遵循 ESLint 规则
+- 使用 Prettier 格式化代码
+
+**提交信息：**
+- 使用约定式提交格式
+- 格式：`type(scope): description`
+- 类型：feat, fix, docs, style, refactor, test, chore
+
+### 报告问题
+
+在提交 Issue 时，请包含：
+- 操作系统和版本
+- Go 版本和 Node.js 版本
+- 详细的错误信息
+- 复现步骤
+- 相关的日志输出
+
+## 更新日志
+
+详细的更新历史请查看 [CHANGELOG.md](CHANGELOG.md)
+
+### 最新版本亮点
+
+- ✨ 新增 Web 界面支持
+- 🐳 Docker 一键部署
+- 🎨 自定义模板功能
+- 📊 增强的统计信息
+- 🌐 多语言支持
+- 🔧 改进的错误处理
+
+## 路线图
+
+### 计划中的功能
+
+- [ ] **AI 增强**：集成 AI 模型自动生成工作总结
+- [ ] **多仓库支持**：同时分析多个 Git 仓库
+- [ ] **团队报告**：生成团队级别的工作报告
+- [ ] **集成支持**：支持 GitLab、GitHub API
+- [ ] **数据导出**：支持 PDF、Excel 格式导出
+- [ ] **定时任务**：自动定时生成和发送报告
+- [ ] **移动端适配**：响应式设计优化
+- [ ] **插件系统**：支持第三方插件扩展
+
+### 版本规划
+
+- **v2.0**：AI 增强和多仓库支持
+- **v2.1**：团队协作功能
+- **v2.2**：企业级集成
+
+## 社区
+
+### 获取帮助
+
+- 📖 [文档](https://github.com/phuhao00/git-report-generator/wiki)
+- 💬 [讨论区](https://github.com/phuhao00/git-report-generator/discussions)
+- 🐛 [问题反馈](https://github.com/phuhao00/git-report-generator/issues)
+
+### 贡献者
+
+感谢所有为项目做出贡献的开发者！
+
+<!-- 贡献者列表将自动更新 -->
+
 ## 许可证
 
 MIT License
+
+Copyright (c) 2024 Git Report Generator Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+<div align="center">
+
+**⭐ 如果这个项目对你有帮助，请给我们一个 Star！**
+
+[🏠 主页](https://github.com/phuhao00/git-report-generator) • 
+[📖 文档](https://github.com/phuhao00/git-report-generator/wiki) • 
+[🐛 报告问题](https://github.com/phuhao00/git-report-generator/issues) • 
+[💡 功能建议](https://github.com/phuhao00/git-report-generator/discussions)
+
+</div>
